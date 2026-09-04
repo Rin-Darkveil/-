@@ -1,0 +1,39 @@
+<!doctype html><meta charset="utf-8"><title>ラスアタ練習時計 Android PiP版</title>
+<style>
+body{margin:0;background:#0b0b0f;color:#fff;font-family:sans-serif;display:grid;place-items:center;min-height:100vh}
+.card{width:min(880px,94vw);background:#15151c;padding:24px;border-radius:18px}
+.clock{font-size:clamp(56px,12vw,110px);font-weight:800;text-align:center;font-variant-numeric:tabular-nums}
+.g{height:28px;background:#2a2a35;border-radius:99px;overflow:hidden;margin:18px 0 24px}.f{height:100%;width:0;background:linear-gradient(90deg,#7ad7ff,#ff4f7a)}
+button{width:100%;padding:16px;border:0;border-radius:14px;background:#ff4f7a;color:#fff;font-size:18px;font-weight:800}
+p{color:#b9b9c7;line-height:1.6}video{display:none}
+</style>
+<div class="card">
+<h2>ラスアタ時計 PiP実験版</h2>
+<p>対応ブラウザなら、下のボタンで時計を小窓表示できます。</p>
+<div id="clock" class="clock">00:00:00</div><div class="g"><div id="fill" class="f"></div></div>
+<button id="pip">PiPで表示</button>
+<p>※ PiPは描画遅延が入る可能性があるので、コンマ秒の厳密な基準には非推奨。</p>
+<video id="v" muted playsinline></video>
+</div>
+<script>
+const c=document.createElement('canvas'); c.width=960;c.height=360; const x=c.getContext('2d');
+const v=document.getElementById('v'), clk=document.getElementById('clock'), fill=document.getElementById('fill');
+v.srcObject=c.captureStream(60); v.play().catch(()=>{});
+function p(n){return String(n).padStart(2,'0')}
+function draw(){
+ const d=new Date(),t=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()),m=d.getMilliseconds();
+ clk.textContent=t; fill.style.width=(m/10)+'%';
+ x.fillStyle='#08080c';x.fillRect(0,0,960,360);
+ x.fillStyle='#fff';x.font='bold 150px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(t,480,135);
+ x.fillStyle='#2a2a35';x.fillRect(70,255,820,42);x.fillStyle='#7ad7ff';x.fillRect(70,255,820*m/1000,42);
+ requestAnimationFrame(draw)
+}
+document.getElementById('pip').onclick=async()=>{
+ try{
+  if(!document.pictureInPictureEnabled){alert('このブラウザではPiPが使えません');return}
+  if(document.pictureInPictureElement) await document.exitPictureInPicture();
+  else {await v.play(); await v.requestPictureInPicture()}
+ }catch(e){alert('PiPを開始できませんでした')}
+};
+draw();
+</script>
